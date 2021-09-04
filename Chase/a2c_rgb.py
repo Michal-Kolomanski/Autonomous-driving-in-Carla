@@ -23,9 +23,9 @@ from torch.utils.tensorboard import SummaryWriter
 from carla_env_chase import CarlaEnv
 
 # For RGB camera
-from function_approximator.deep import Actor as DeepActor  # Continuous
-from function_approximator.deep import DiscreteActor as DeepDiscreteActor  # Separate actor
-from function_approximator.deep import Critic as DeepCritic  # Separate critic
+from nets.a2c import Actor as DeepActor  # Continuous
+from nets.a2c import DiscreteActor as DeepDiscreteActor  # Separate actor
+from nets.a2c import Critic as DeepCritic  # Separate critic
 
 # TODO semantic
 
@@ -309,18 +309,18 @@ class DeepActorCriticAgent(mp.Process):
                 save_path = os.getcwd() + '\improved_models'
                 file_name = f"{episode}_" + model_description
                 cp_name = os.path.join(save_path, file_name)
-                self.save(cp_name, episode_rewards)  # Save the model when it improves
+                self.save(cp_name)  # Save the model when it improves
                 num_improved_episodes_before_checkpoint = 0
 
             if episode % 100 == 0:  # Save the model per 100 episodes
-                self.save(f"100_" + model_description, episode_rewards)
+                self.save(f"100_" + model_description)
             if episode % 250 == 0:
                 if not os.path.exists('models'):
                     os.mkdir('models')
                 save_path = os.getcwd() + '\models'
                 file_name = f"{episode}_" + model_description
                 cp_name = os.path.join(save_path, file_name)
-                self.save(cp_name, episode_rewards)
+                self.save(cp_name)
 
             print("Episode: {} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{}".format(episode,
                                                                                              ep_reward,

@@ -9,13 +9,14 @@ GAMMA = 0.9  # Discount factor
 LR = 1e-4  # Learning rate
 USE_ENTROPY = True  # Entropy is a measure of chaos in a system
 # Using the measure of entropy it is easier to avoid getting stuck in a local optima
-LOAD_MODEL = ''  # The name of the model which you want to load
+# The name of the model which you want to load
+LOAD_MODEL = 'final_models\\a-b_sc1,3,4,5,6_rgb_discrete_gamma-0.9_lr-0.0001.pth'
 # If you do not want to load anything keep it empty
 STEP_COUNTER = 200  # How many steps in one episode?
 SLEEP_BETWEEN_ACTIONS = 0.2  # How many sec sleep between consecutive actions? E.g: 0.2 gives 5 actions per 1 sec
 # Without sleeping there are a lot of actions and those actions do not have enough time to influence the world.
 SHOW_CAM = False  # Vehicle's camera preview
-SCENARIO = [7]  # List of scenarios on which the model is trained
+SCENARIO = [1, 3, 4, 5, 6]  # List of scenarios on which the model is trained
 
 """ 
 Specify scenario parameter or spawn_point and terminal_point parameters
@@ -42,5 +43,5 @@ REWARD_FROM_INV = -50  # Static reward from a line invasion
 ACTIONS = ['forward', 'forward_left', 'forward_right', 'brake', 'brake_left', 'brake_right']
 
 CARLA_PATH = r''  # provide your carla exec path
-CARLA_EGG_PATH = r'' # Provide your carla egg path
+CARLA_EGG_PATH = r''  # Provide your carla egg path
 

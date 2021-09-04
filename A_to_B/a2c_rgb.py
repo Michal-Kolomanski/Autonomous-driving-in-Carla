@@ -22,16 +22,12 @@ from torch.utils.tensorboard import SummaryWriter
 
 from carla_env import CarlaEnv
 
-# for RGB
-from function_approximator.deep import Actor as DeepActor  # Continuous
-from function_approximator.deep import DiscreteActor as DeepDiscreteActor  # Separate actor
-from function_approximator.deep import Critic as DeepCritic  # Separate critic
+# For RGB
+from nets.a2c import Actor as DeepActor  # Continuous
+from nets.a2c import DiscreteActor as DeepDiscreteActor  # Separate actor
+from nets.a2c import Critic as DeepCritic  # Separate critic
 
-# TODO
-# for semantic
-from function_approximator.shallow import Actor  # Continuous
-from function_approximator.shallow import DiscreteActor
-from function_approximator.shallow import Critic
+# TODO Semantic
 
 from ACTIONS import ACTIONS as ac
 from utils import ColoredPrint
@@ -312,18 +308,18 @@ class DeepActorCriticAgent(mp.Process):
                 save_path = os.getcwd() + '\improved_models'
                 file_name = f"{episode}_a-b_{self.camera_type}_{self.action_type}_gamma-{self.gamma}_lr-{self.lr}"
                 cp_name = os.path.join(save_path, file_name)
-                self.save(cp_name, episode_rewards) # Save the model when it improves
+                self.save(cp_name) # Save the model when it improves
                 num_improved_episodes_before_checkpoint = 0
 
             if episode % 100 == 0:  # Save the model per 100 episodes
-                self.save(f"100_a-b_{self.camera_type}_{self.action_type}_gamma-{self.gamma}_lr-{self.lr}", episode_rewards)
+                self.save(f"100_a-b_{self.camera_type}_{self.action_type}_gamma-{self.gamma}_lr-{self.lr}")
             if episode % 250 == 0:
                 if not os.path.exists('models'):
                     os.mkdir('models')
                 save_path = os.getcwd() + '\models'
                 file_name = f"{episode}_a-b_{self.camera_type}_{self.action_type}_gamma-{self.gamma}_lr-{self.lr}"
                 cp_name = os.path.join(save_path, file_name)
-                self.save(cp_name, episode_rewards)
+                self.save(cp_name)
 
             print("Episode: {} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{}".format(episode,
                                                                                              ep_reward,
@@ -331,7 +327,7 @@ class DeepActorCriticAgent(mp.Process):
                                                                                              self.best_reward))
             writer.add_scalar("ep_reward", ep_reward, episode)
 
-    def save(self, name, ep_rewards):
+    def save(self, name):
         model_file_name = name + ".pth"
         agent_state = {"actor": self.actor.state_dict(),
                        "actor_optimizer": self.actor_optimizer.state_dict(),
@@ -339,7 +335,6 @@ class DeepActorCriticAgent(mp.Process):
                        "critic_optimizer": self.critic_optimizer.state_dict(),
                        "best_mean_reward": self.best_mean_reward,
                        "best_reward": self.best_reward}
-        pickle.dump(ep_rewards, open("ep_rewards_coll_reward_no_semantic.p", "wb"))
         torch.save(agent_state, model_file_name)
         print("Agent's state is saved to", model_file_name)
 

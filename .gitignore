@@ -134,3 +134,5 @@ dmypy.json
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/Autonomous-driving-in-Carla.iml
 .idea/workspace.xml
+.idea/other.xml
+*.0
