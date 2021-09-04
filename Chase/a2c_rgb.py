@@ -78,10 +78,10 @@ class DeepActorCriticAgent(mp.Process):
         self.lr = lr
         self.use_entropy = use_entropy
 
-        env = CarlaEnv(scenario=scenario,  port=port, action_space=self.action_type, camera=self.camera_type,
-                       res_x=80, res_y=80, manual_control=False)
+        self.env = CarlaEnv(scenario=scenario,  port=port, action_space=self.action_type, camera=self.camera_type,
+                            res_x=80, res_y=80, manual_control=False)
 
-        self.environment = env  # Carla env
+        self.environment = self.env  # Carla env
         self.trajectory = []  # Contains the trajectory of the agent as a sequence of transitions
         self.rewards = []  # Contains the rewards obtained from the env at every step
         self.policy = self.discrete_policy  # discrete or continuous
@@ -221,10 +221,10 @@ class DeepActorCriticAgent(mp.Process):
         writer.add_scalar("actor_loss", actor_loss, self.global_step_num)
         writer.add_scalar("critic_loss", critic_loss, self.global_step_num)
         writer.add_scalar("Advantage", advantage, self.global_step_num)
-        writer.add_scalar("log_prob_actions_batch_mean", sum(log_prob_a_batch)/len(log_prob_a_batch), self.global_step_num)
-        writer.add_scalar("v_s_batch", sum(v_s_batch)/len(v_s_batch), self.global_step_num)
-        writer.add_scalar("td_targets", sum(td_targets)/len(td_targets), self.global_step_num)
-        writer.add_scalar("Entropy", self.action_distribution.entropy(), self.global_step_num)
+        # writer.add_scalar("log_prob_actions_batch_mean", sum(log_prob_a_batch)/len(log_prob_a_batch), self.global_step_num)
+        # writer.add_scalar("v_s_batch", sum(v_s_batch)/len(v_s_batch), self.global_step_num)
+        # writer.add_scalar("td_targets", sum(td_targets)/len(td_targets), self.global_step_num)
+        # writer.add_scalar("Entropy", self.action_distribution.entropy(), self.global_step_num)
         writer.add_scalar("Entropy_mean", self.action_distribution.entropy().mean(), self.global_step_num)
 
         return actor_loss, critic_loss
@@ -250,6 +250,7 @@ class DeepActorCriticAgent(mp.Process):
             self.load(load_model)
 
         episode_rewards = []  # Every episode's reward
+        effective_chase_times = []
         prev_checkpoint_mean_ep_rew = self.best_mean_reward
         num_improved_episodes_before_checkpoint = 0  # To keep track of the num of ep with higher perf to save model
 
@@ -273,7 +274,6 @@ class DeepActorCriticAgent(mp.Process):
                     actions_counter[ac.ACTIONS_NAMES[self.environment.action_space[action]]] += 1
 
                 new_state, reward, done = self.environment.step(action)
-
                 new_state = new_state / 255  # resize the tensor to [0, 1]
 
                 # image = new_state[0].detach().numpy().reshape(80, 80, 3)
@@ -327,6 +327,13 @@ class DeepActorCriticAgent(mp.Process):
                                                                                              np.mean(episode_rewards),
                                                                                              self.best_reward))
             writer.add_scalar("ep_reward", ep_reward, episode)
+
+            effective_chase_times.append(self.env.effective_chase_per)
+            avg_chase_per = sum(effective_chase_times) / len(effective_chase_times)
+            writer.add_scalar("effective_chase%", self.env.effective_chase_per, episode)
+            writer.add_scalar("effective_chase%_mean", avg_chase_per, episode)
+            writer.add_scalar("effective_chase", self.env.effective_chase_timer.get(), episode)  # TODO Delete later
+            writer.add_scalar("episode_timer", self.env.episode_timer.get(), episode)  # TODO Delete later
 
     def save(self, name):
         model_file_name = name + ".pth"

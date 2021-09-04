@@ -1,8 +1,51 @@
 import settings
+import time
 from datetime import datetime
 
 
+class Timer:
+    def __init__(self):
+        self.time_started = None
+        self.time_paused = None
+        self.paused = False
+
+    def start(self):
+        """ Starts an internal timer """
+        self.time_started = time.time()
+
+    def pause(self):
+        """ Pauses the timer """
+        if self.time_started is None:
+            raise ValueError("Timer not started")
+        if self.paused:
+            raise ValueError("Timer is already paused")
+        self.time_paused = time.time()
+        self.paused = True
+
+    def resume(self):
+        """ Resumes the timer by adding the pause time to the start time """
+        if self.time_started is None:
+            raise ValueError("Timer not started")
+        if not self.paused:
+            raise ValueError("Timer is not paused")
+        pause_time = time.time() - self.time_paused
+        self.time_started = self.time_started + pause_time
+        self.paused = False
+
+    def get(self):
+        """ Get the time """
+        if self.time_started is None:
+            raise ValueError("Timer not started")
+        if self.paused:
+            return round(self.time_paused - self.time_started, 3)
+        else:
+            return round(time.time() - self.time_started, 3)
+
+
 class ColoredPrint:
+    """
+    Creates colorful logs
+    """
     def __init__(self):
         self.PINK = '\033[95m'
         self.OKBLUE = '\033[94m'
@@ -10,6 +53,7 @@ class ColoredPrint:
         self.WARNING = '\033[93m'
         self.FAIL = '\033[91m'
         self.ENDC = '\033[0m'
+        self.msg = None
 
     def disable(self):
         self.PINK = ''

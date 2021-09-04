@@ -10,7 +10,7 @@ import pygame
 import threading
 
 import settings
-from utils import ColoredPrint, reward_function
+from utils import ColoredPrint, reward_function, Timer
 from ACTIONS import ACTIONS as ac
 
 try:
@@ -41,20 +41,19 @@ class CarlaEnv:
     """
     Create Carla environment
     """
-    def __init__(self, scenario, action_space='discrete',  camera='rgb', res_x=80, res_y=80, port=2000, manual_control=False):
+    def __init__(self, scenario, action_space='discrete',  camera='rgb', res_x=80, res_y=80, port=2000,
+                 manual_control=False):
         # Run the server on 127.0.0.1/port
         start_carla_server(f'-windowed -carla-server -fps={fps} -ResX=640 -ResY=480 -quality-level=Low'
                            f' -carla-world-port={port}')
         self.client = carla.Client("localhost", port)
         self.client.set_timeout(10.0)
 
-        # Enable to use colors
-        self.log = ColoredPrint()
-
         # Make sure that server and client versions are the same
         client_ver = self.client.get_client_version()
         server_ver = self.client.get_server_version()
 
+        self.log = ColoredPrint()  # Enable to use colors
         if client_ver == server_ver:
             self.log.success(f"Client version: {client_ver}, Server version: {server_ver}")
         else:
@@ -63,19 +62,15 @@ class CarlaEnv:
         self.client.load_world('Town03')
         self.world = self.client.get_world()
         self.settings = self.world.get_settings()
-        self.clock = pygame.time.Clock()
         self.camera_type = camera
-
-        # List of available agents with attributes
-        self.blueprint_library = self.world.get_blueprint_library()
+        self.blueprint_library = self.world.get_blueprint_library()  # List of available agents with attributes
         self.map = self.world.get_map()
 
         self.scenario_list = scenario
         try:
             self.scenario = self.scenario_list[0]  # Single scenario
-        except:
+        except IndexError:
             self.scenario = False
-
         """
         a - vehicle which is chasing
         b - vehicle which is being chased
@@ -84,15 +79,10 @@ class CarlaEnv:
         self.a_sp, self.b_sp, self.ride_history = self.create_scenario()
         self.a_sp_loc, self.b_sp_loc = self.a_sp.location, self.b_sp.location
 
-        # Set the spectator
-        self.spectator = self.set_spectator()
-        # Environment possible actions
-        self.action_space = self.create_action_space(action_space)
-        # List of all actors in the environment
-        self.actor_list = []
-
-        self.transform = carla.Transform(carla.Location(x=2.5, z=0.7))
-
+        self.spectator = self.set_spectator()  # Set the spectator
+        self.action_space = self.create_action_space(action_space)  # Environment possible actions
+        self.actor_list = []  # List of all actors in the environment
+        self.transform = carla.Transform(carla.Location(x=2.5, z=0.7))  # Location of attached sensors to the vehicle
         self.manual_control = manual_control
 
         self.b_vehicle = self.spawn_car('carlacola', self.b_sp)  # Chased car
@@ -107,20 +97,18 @@ class CarlaEnv:
         self.res_x = res_x
         self.res_y = res_y
 
-        # Variables which have to reset at the end of each episode
-        self.collision_history_list = []
-
-        # The number of steps in one episode
-        self.step_counter = 0
-
         # Cameras
         self.show_cam = show_cam
         self.front_camera = None
 
-        # Vehicle B movement thread
-        self.thread = None
-        self.done = False
-        self.timer = None
+        self.clock = pygame.time.Clock()  # Controls FPS of pygame client
+        self.collision_history_list = []  # Variables which have to reset at the end of each episode
+        self.step_counter = 0  # The number of steps in one episode
+        self.thread = None  # Vehicle B movement thread
+        self.done = False  # A flag which ends the episode
+        self.episode_timer = Timer()  # Episode's timer
+        self.effective_chase_timer = Timer()  # Measures the time of being from 5m to 25m around the chased car
+        self.effective_chase_per = 0  # Effective chase / whole duration * 100%
 
     def create_scenario(self):
         """
@@ -471,45 +459,39 @@ class CarlaEnv:
 
     def reload_world(self):
         """
-        Rest variables at the end of each episode
+        Rest Carla env and variables at the end of each episode
         """
-
         self.destroy_agents()
         self.actor_list = []
+        self.collision_history_list = []
+        self.prev_b_vehicle_loc = None
+        self.step_counter = 0
+        self.done = False
+        self.front_camera = None
+        self.episode_timer = Timer()
+        self.effective_chase_timer = Timer()
+        self.effective_chase_per = 0
 
         if not self.manual_control:
             self.world = self.client.reload_world()
 
-        self.collision_history_list = []
-        self.prev_b_vehicle_loc = None
-
-        # The number of steps in one episode
-        self.step_counter = 0
-        self.done = False
-
-        # Cameras
-        self.front_camera = None
-
     def reset(self, vehicle_for_mc=None):
         """
         Rest environment at the end of each episode
-        :return:
+        :return: self.front_camera - an 80x80 image from the spawn point
         """
-
         if self.manual_control:
             self.a_vehicle = vehicle_for_mc
 
         if self.step_counter > 0:  # Omit the first iteration
             self.thread.join()
 
-        self.reload_world()
+        self.reload_world()  # Reset variables
 
-        self.scenario = random.choice(self.scenario_list)
+        self.scenario = random.choice(self.scenario_list)  # Get random scenario
         self.a_sp, self.b_sp, self.ride_history = self.create_scenario()
         self.a_sp_loc, self.b_sp_loc = self.a_sp.location, self.b_sp.location
-
-        # Set the spectator
-        self.spectator = self.set_spectator()
+        self.spectator = self.set_spectator() # Set the spectator
 
         self.b_vehicle = self.spawn_car('carlacola', self.b_sp)  # Chased car
         if not self.manual_control:
@@ -523,9 +505,7 @@ class CarlaEnv:
             self.log.err(f"Wrong camera type. Pick rgb or semantic, not: {self.camera_type}")
 
         self.add_collision_sensor(self.a_vehicle)
-
         self.a_vehicle.apply_control(carla.VehicleControl(throttle=1.0, brake=1.0))
-
         time.sleep(0.5)
 
         while self.front_camera is None:
@@ -533,10 +513,6 @@ class CarlaEnv:
 
         self.a_vehicle.apply_control(carla.VehicleControl(brake=0.0))
 
-        # Start the timer
-        self.timer = time.time()
-
-        # A frame from the spawn point
         return self.front_camera
 
     def step(self, action, vehicle_for_mc=None):
@@ -546,20 +522,23 @@ class CarlaEnv:
         :param vehicle_for_mc: carla.Vehicle class used only in human_performance_test.py
         :return:
         """
-        self.clock.tick(fps)  # FPS
+        self.clock.tick(fps)  # Pygame's FPS
 
         if not self.manual_control:
             if self.action_space == 'continuous':
                 self.car_control_continuous(action, self.a_vehicle)
-            else:
+            else:  # Discrete
                 self.car_control_discrete(action, self.a_vehicle)
         else:
             self.a_vehicle = vehicle_for_mc
 
-        if self.step_counter == 0:  # Only the first iteration
+        if self.step_counter == 0:  # Only the first step
+            # Apply chased vehicle movement async
             self.thread = threading.Thread(target=self.chased_vehicle_movement, args=(), kwargs={}, daemon=True)
             self.thread.start()
-            self.timer = time.time()
+            self.episode_timer.start()
+            # Assumption that the chase is starting at point where the chasing car is 5-25m behind
+            self.effective_chase_timer.start()
 
         self.step_counter += 1
 
@@ -570,15 +549,23 @@ class CarlaEnv:
         a_location, b_location = self.draw_movement(self.a_vehicle), self.b_vehicle.get_location()
         ab_distance = round(self.calculate_distance(a_location, b_location), 3)
 
-        # angle = self.calculate_angle(self.a_vehicle, self.b_vehicle)
-
-        timer = round(time.time() - self.timer, 3)  # How many seconds the episode has?
+        if 5 <= ab_distance <= 25:  # 5m-25m effective chase
+            if self.effective_chase_timer.paused:
+                self.effective_chase_timer.resume()
+        else:
+            if not self.effective_chase_timer.paused:
+                self.effective_chase_timer.pause()
 
         # Done from a collision or a distnace
-        reward, self.done = reward_function(self.collision_history_list, ab_distance=ab_distance, timer=timer)
+        reward, self.done = reward_function(self.collision_history_list, ab_distance=ab_distance,
+                                            timer=self.episode_timer.get())
 
         if not self.thread.is_alive():
             self.done = True  # The end of the episode
+
+        if self.done:
+            """ Calculate effective chase time"""
+            self.effective_chase_per = self.effective_chase_timer.get() / self.episode_timer.get() * 100
 
         return self.front_camera, reward, self.done
 
