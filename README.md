@@ -22,7 +22,7 @@ Example of a more challenging scenario:
 Autonomous chase of a fleeing vehicle.
 This project followed a similar approach to learning. However, autonomous chasing proved to be more challenging than getting from point A to point B, and work on training a satisfactory model continues.
 
-Examples of some fundamental road manoeuvres:
+Examples of some fundamental chase manoeuvres:
 <p align="left">
   <img src="Gif/chase/sc1/scenario1.gif" width="400"/>
   <img src="Gif/chase/sc3/scenario3.gif" width="400"/>
