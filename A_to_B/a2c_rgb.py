@@ -8,6 +8,8 @@ The A2C's high-level flow:
 """
 
 import pickle
+import time
+
 import numpy as np
 import os
 import cv2

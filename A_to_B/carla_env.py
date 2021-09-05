@@ -33,6 +33,8 @@ how_many_steps = settings.STEP_COUNTER
 sleep_time = settings.SLEEP_BETWEEN_ACTIONS
 mp_reward = settings.REWARD_FROM_MP
 tp_reward = settings.REWARD_FROM_TP
+serv_resx = settings.SERV_RESX
+serv_resy = settings.SERV_RESY
 
 
 def start_carla_server(args):
@@ -46,7 +48,8 @@ class CarlaEnv:
     def __init__(self, scenario, action_space='discrete', resX=80, resY=80, camera='rgb', port=2000,
                  manual_control=False, spawn_point=False, terminal_point=False, mp_density=25):
         # Run the server on 127.0.0.1/port
-        start_carla_server(f'-windowed -carla-server -fps=60 -ResX=640 -ResY=480 -quality-level=Low -carla-world-port={port}')
+        start_carla_server(f'-windowed -carla-server -fps=60 -ResX={serv_resx} -ResY={serv_resy} -quality-level=Low '
+                           f'-carla-world-port={port}')
         self.client = carla.Client("localhost", port)
         self.client.set_timeout(10.0)
 

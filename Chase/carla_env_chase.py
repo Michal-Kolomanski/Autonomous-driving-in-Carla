@@ -31,6 +31,8 @@ import cv2
 fps = settings.FPS
 show_cam = settings.SHOW_CAM
 sleep_time = settings.SLEEP_BETWEEN_ACTIONS
+serv_resx = settings.SERV_RESX
+serv_resy = settings.SERV_RESY
 
 
 def start_carla_server(args):
@@ -44,7 +46,7 @@ class CarlaEnv:
     def __init__(self, scenario, action_space='discrete',  camera='rgb', res_x=80, res_y=80, port=2000,
                  manual_control=False):
         # Run the server on 127.0.0.1/port
-        start_carla_server(f'-windowed -carla-server -fps={fps} -ResX=640 -ResY=480 -quality-level=Low'
+        start_carla_server(f'-windowed -carla-server -fps={fps} -ResX={serv_resx} -ResY={serv_resy} -quality-level=Low'
                            f' -carla-world-port={port}')
         self.client = carla.Client("localhost", port)
         self.client.set_timeout(10.0)

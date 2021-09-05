@@ -16,6 +16,8 @@ STEP_COUNTER = 200  # How many steps in one episode?
 SLEEP_BETWEEN_ACTIONS = 0.2  # How many sec sleep between consecutive actions? E.g: 0.2 gives 5 actions per 1 sec
 # Without sleeping there are a lot of actions and those actions do not have enough time to influence the world.
 SHOW_CAM = False  # Vehicle's camera preview
+SERV_RESX = 640  # Server X resolution
+SERV_RESY = 480  # Server Y resolution
 SCENARIO = [1, 3, 4, 5, 6]  # List of scenarios on which the model is trained
 
 """ 

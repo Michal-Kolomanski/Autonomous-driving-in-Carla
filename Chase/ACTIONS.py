@@ -13,32 +13,6 @@ class ACTIONS:
     brake_right = 5
     # no_action = 8
 
-    # ACTION_CONTROL = {
-    #     #  acc,  steer
-    #     0: [1.0, 0.0],  # forward
-    #     1: [0.0, -0.5],  # left
-    #     2: [0.0, 0.5],  # right
-    #     3: [1.0, -0.5],  # forward left
-    #     4: [1.0, 0.5],  # forward right
-    #     5: [-0.5, 0.0],  # brake
-    #     6: [-0.5, -0.5],  # brake left
-    #     7: [-0.5, 0.5],  # brake right
-    #     8: [0.0, 0.0],  # no action
-    # }
-
-    # ACTION_CONTROL = {
-    #     # acc, br, steer
-    #     0: [1.0, 0.0, 0.0],  # forward
-    #     1: [0.0, 0.0, -0.5],  # left
-    #     2: [0.0, 0.0, 0.5],  # right
-    #     3: [1.0, 0.0, -0.5],  # forward left
-    #     4: [1.0, 0.0, 0.5],  # forward right
-    #     5: [0.0, 0.5, 0.0],  # brake
-    #     6: [0, 0.5, -0.5],  # brake left
-    #     7: [0, 0.5, 0.5],  # brake right
-    #     8: [0.0, 0.0, 0.0],  # no action
-    # }
-
     ACTION_CONTROL = {
         # acc, br, steer
         0: [1, 0, 0],  # forward
