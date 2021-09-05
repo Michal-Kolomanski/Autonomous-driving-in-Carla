@@ -450,7 +450,10 @@ class CarlaEnv:
         """
         for frame in self.ride_history:
             if not self.done:
-                time.sleep(0.07)
+                if self.scenario == 5:
+                    time.sleep(0.03)
+                else:
+                    time.sleep(0.07)
                 self.draw_movement(self.b_vehicle)
                 self.prev_b_vehicle_loc = self.b_vehicle.get_transform().location
                 new_loc = carla.Location(frame[0], frame[1], frame[2])
