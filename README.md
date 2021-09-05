@@ -29,3 +29,8 @@ Examples of some fundamental road manoeuvres:
   <img src="Gif/chase/sc5/sc5.gif" width="400"/>
 </p>
 
+## Technologies
+* Python 3.7
+* PyTorch 1.8.1+cu111
+* Carla 0.9.10 (Probably compatible with the latest versions)
+
