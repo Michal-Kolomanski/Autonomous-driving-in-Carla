@@ -7,15 +7,15 @@ Using this knowledge, the models can learn how to beat any scenario in a reasona
 
 Examples of some fundamental road manoeuvres:
 <p align="left">
-  <img src="Gif/a_b/sc1/scenario1.gif" width="430"/>
-  <img src="Gif/a_b/sc3/scenario3.gif" width="430"/>
-  <img src="Gif/a_b/sc4/scenario4.gif" width="430"/>
-  <img src="Gif/a_b/sc5/scenario5.gif" width="430"/>
+  <img src="Gif/a_b/sc1/scenario1.gif" width="400"/>
+  <img src="Gif/a_b/sc3/scenario3.gif" width="400"/>
+  <img src="Gif/a_b/sc4/scenario4.gif" width="400"/>
+  <img src="Gif/a_b/sc5/scenario5.gif" width="400"/>
 </p>
 
 Example of a more challenging scenario:
 <p align="centre">
-  <img src="Gif/a_b/sc7/scenario7.gif" width="430"/>
+  <img src="Gif/a_b/sc7/scenario7.gif" width="400"/>
 </p>
 
 # Chase
