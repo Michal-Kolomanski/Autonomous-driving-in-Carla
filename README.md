@@ -26,7 +26,7 @@ Examples of some fundamental chase manoeuvres:
 <p align="left">
   <img src="Gif/chase/sc1/scenario1.gif" width="400"/>
   <img src="Gif/chase/sc3/scenario3.gif" width="400"/>
-  <img src="Gif/chase/sc5/sc5.gif" width="400"/>
+  <img src="Gif/chase/sc5/scenario5.gif" width="400"/>
 </p>
 
 ## Technologies
