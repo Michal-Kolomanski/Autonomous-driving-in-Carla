@@ -51,7 +51,7 @@ class CarlaEnv:
         start_carla_server(f'-windowed -carla-server -fps=60 -ResX={serv_resx} -ResY={serv_resy} -quality-level=Low '
                            f'-carla-world-port={port}')
         self.client = carla.Client("localhost", port)
-        self.client.set_timeout(10.0)
+        self.client.set_timeout(30.0)
 
         # Enable to use colors
         self.log = ColoredPrint()

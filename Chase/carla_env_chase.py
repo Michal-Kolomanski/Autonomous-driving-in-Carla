@@ -36,20 +36,26 @@ serv_resy = settings.SERV_RESY
 
 
 def start_carla_server(args):
-    return subprocess.Popen(f'CarlaUE4.exe ' + args, cwd=settings.CARLA_PATH, shell=True)
+    """Start carla server"""
+    if os.name == 'nt':  # Windows
+        return subprocess.Popen(f'CarlaUE4.exe ' + args, cwd=settings.CARLA_PATH, shell=True)
+    elif os.name == 'posix':  # Ubuntu
+        # return os.system(f'{settings.CARLA_PATH}/CarlaUE4.sh ' + args + ' &')
+        return subprocess.Popen(f'{settings.CARLA_PATH}/CarlaUE4.sh ' + args, cwd=settings.CARLA_PATH, shell=True)
 
 
 class CarlaEnv:
-    """
-    Create Carla environment
-    """
+    """Create Carla environment"""
     def __init__(self, scenario, action_space='discrete',  camera='rgb', res_x=80, res_y=80, port=2000,
                  manual_control=False):
         # Run the server on 127.0.0.1/port
-        start_carla_server(f'-windowed -carla-server -fps={fps} -ResX={serv_resx} -ResY={serv_resy} -quality-level=Low'
-                           f' -carla-world-port={port}')
-        self.client = carla.Client("localhost", port)
-        self.client.set_timeout(10.0)
+        start_carla_server(f'-windowed -carla-server -carla-rpc-port={port} -ResX={serv_resx} -ResY={serv_resy} '
+                           f'-quality-level=Low -fps={fps}')
+        # -carla-port
+        # -carla-world-port
+        # -carla-rpc-port
+        self.client = carla.Client('localhost', port)
+        self.client.set_timeout(30.0)
 
         # Make sure that server and client versions are the same
         client_ver = self.client.get_client_version()
