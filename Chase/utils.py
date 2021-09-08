@@ -126,7 +126,6 @@ def reward_function(collision_history_list, ab_distance, timer):
         route_distance_reward = round(-1/6 * ab_distance + 4, 3)
 
     else:
-        # reward_num == 4:
         col_reward = -1
         timer_reward = round(1/12 * timer, 3)
 
@@ -142,8 +141,6 @@ def reward_function(collision_history_list, ab_distance, timer):
         done = True
 
     reward = round(col_reward + route_distance_reward + timer_reward, 3)
-
-    # print(f"reward: {reward}, ab_distance: {ab_distance}")
 
     return reward, done
 

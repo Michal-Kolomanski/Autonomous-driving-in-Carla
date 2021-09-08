@@ -89,7 +89,6 @@ import math
 import random
 import re
 import weakref
-import time
 
 try:
     import pygame

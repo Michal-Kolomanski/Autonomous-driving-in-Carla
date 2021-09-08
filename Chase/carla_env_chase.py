@@ -302,10 +302,6 @@ class CarlaEnv:
             # noinspection PyUnresolvedReferences
             cv2.waitKey(1)
 
-        # if self.step_counter % 10 == 0:
-        #     # noinspection PyUnresolvedReferences
-        #     cv2.imwrite('C:\mkoloman\Magisterka\Chase\images\image{}.png'.format(self.step_counter), i3)
-
         self.front_camera = torch.Tensor(i3).view(3, self.res_x, self.res_y).unsqueeze(0)
 
     def add_semantic_camera(self, vehicle):
@@ -340,10 +336,6 @@ class CarlaEnv:
             # noinspection PyUnresolvedReferences
             cv2.waitKey(1)
 
-        # if self.step_counter % 10 == 0:
-        #     # noinspection PyUnresolvedReferences
-        #     cv2.imwrite('C:\mkoloman\Magisterka\Chase\images\image{}.png'.format(self.step_counter), image)
-
         self.front_camera = torch.Tensor(image).view(3, self.res_x, self.res_y).unsqueeze(0).float()
 
     def add_collision_sensor(self, vehicle):
@@ -362,7 +354,6 @@ class CarlaEnv:
         :param event: data from the collision sensor
         """
         coll_type = event.other_actor.type_id
-        # self.log.err(f"Collision with: {coll_type}")
         self.collision_history_list.append(event)
 
     def car_control_continuous(self, action, vehicle):
