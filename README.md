@@ -29,8 +29,31 @@ Examples of some fundamental chase manoeuvres:
   <img src="Gif/chase/sc5/scenario5.gif" width="400"/>
 </p>
 
-## Technologies
-* Python 3.7
-* PyTorch 1.8.1+cu111
-* Carla 0.9.10 (Probably compatible with the latest versions)
+## How to run?
+1. Provide the paths to the Carla executable and egg files in the file *settings.py*,
+2. Run *a2c_rgb.py* file.
 
+## Requirements
+* Python 3.7.x
+* Pipenv
+* Git
+* Carla 0.9.10
+
+The pipfile contains a list of all essential project packages. For information on how to install these, see the [setup](#setup) section.
+If you wish to use a GPU with Pytorch, you'll need a device that supports CUDA.
+
+## Setup
+1. Install git, python and pipenv
+2. Clone this repository and navigate to its root directory
+```bash
+git clone https://github.com/Michal-Kolomanski/Autonomous-driving-in-Carla
+```
+3. Install all required project packages by executing
+```bash
+pipenv install --dev
+```
+
+4. To open project virtual environment shell, type:
+```bash
+pipenv shell
+```
