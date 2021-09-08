@@ -156,9 +156,6 @@ def get_actor_display_name(actor, truncate=250):
 # -- World ---------------------------------------------------------------------
 # ==============================================================================
 
-# My code
-import settings
-
 # Global settings
 port = settings.PORT
 action_type = settings.ACTION_TYPE

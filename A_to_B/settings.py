@@ -10,7 +10,7 @@ LR = 1e-4  # Learning rate
 USE_ENTROPY = True  # Entropy is a measure of chaos in a system
 # Using the measure of entropy it is easier to avoid getting stuck in a local optima
 # The name of the model which you want to load
-LOAD_MODEL = 'final_models\\a-b_sc1,3,4,5,6_rgb_discrete_gamma-0.9_lr-0.0001.pth'
+LOAD_MODEL = 'final_models\\a-b_sc7_rgb_discrete_gamma-0.9_lr-0.0001.pth'
 # If you do not want to load anything keep it empty
 STEP_COUNTER = 200  # How many steps in one episode?
 SLEEP_BETWEEN_ACTIONS = 0.2  # How many sec sleep between consecutive actions? E.g: 0.2 gives 5 actions per 1 sec
@@ -18,7 +18,7 @@ SLEEP_BETWEEN_ACTIONS = 0.2  # How many sec sleep between consecutive actions? E
 SHOW_CAM = False  # Vehicle's camera preview
 SERV_RESX = 640  # Server X resolution
 SERV_RESY = 480  # Server Y resolution
-SCENARIO = [1, 3, 4, 5, 6]  # List of scenarios on which the model is trained
+SCENARIO = [7]  # List of scenarios on which the model is trained
 
 """ 
 Specify scenario parameter or spawn_point and terminal_point parameters

@@ -24,8 +24,8 @@ import subprocess
 import cv2
 
 from utils import reward_function
-from examples.agents.navigation.global_route_planner import GlobalRoutePlanner
-from examples.agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
+from A_to_B.carla_navigation.global_route_planner import GlobalRoutePlanner
+from A_to_B.carla_navigation.global_route_planner_dao import GlobalRoutePlannerDAO
 from settings import SHOW_CAM
 
 # Global settings
@@ -66,26 +66,20 @@ class CarlaEnv:
             self.log.warn(f"Client version: {client_ver}, Server version: {server_ver}")
 
         self.client.load_world('Town03')
-        # Locally one try of self.world is enough
         self.world = self.client.get_world()
         self.settings = self.world.get_settings()
-        # settings are: synchronous_mode=False, no_rendering_mode=False
         self.camera_type = camera
-
-        # List of available agents with attributes
         self.blueprint_library = self.world.get_blueprint_library()
         self.map = self.world.get_map()
 
         self.scenario_list = scenario
         try:
             self.scenario = self.scenario_list[0]  # Single scenario
-        except:
+        except IndexError:
             self.scenario = False
 
-        # After how many episodes scenarios should be switched?
         self.sp = spawn_point
         self.tp = terminal_point
-        # Divide the route as set of points between initial and terminal point (in which there will be a reward)
         self.middle_goals = []
         self.middle_goals_density = mp_density  # how dense middle points should be?
         self.create_scenario(self.sp, self.tp, self.middle_goals_density)
@@ -122,6 +116,7 @@ class CarlaEnv:
         self.collision_history_list = []
         # History of crossing a lane markings
         self.invasion_history_list = []
+        self.stat_reward_mp = []
 
         # The number of steps in one episode
         self.step_counter = 0
@@ -278,7 +273,7 @@ class CarlaEnv:
 
     def create_action_space(self, action_space):
         if action_space == 'discrete':
-            self.action_space = [getattr(ac, action) for action in settings.ACTIONS]  # [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            self.action_space = [getattr(ac, action) for action in settings.ACTIONS]
             return self.action_space
         else:
             self.action_space = action_space
@@ -315,13 +310,6 @@ class CarlaEnv:
             # noinspection PyUnresolvedReferences
             cv2.waitKey(1)
 
-        # if self.step_counter % 10 == 0:
-        #     # noinspection PyUnresolvedReferences
-        #     cv2.imwrite('C:\mkoloman\Magisterka\Carla_organization\Carla\images\image{}.png'.format(self.step_counter), i3)
-
-        # view() - Returns a new tensor with the same data as the self tensor but of a different shape
-        # unsqueeze(0) adds additional [] at the top
-        # https://stackoverflow.com/questions/61598771/pytorch-squeeze-and-unsqueeze
         self.front_camera = torch.Tensor(i3).view(3, self.resX, self.resY).unsqueeze(0)
 
     def add_semantic_camera(self):
@@ -355,10 +343,6 @@ class CarlaEnv:
             cv2.imshow("", image)
             # noinspection PyUnresolvedReferences
             cv2.waitKey(1)
-
-        # if self.step_counter % 10 == 0:
-        #     # noinspection PyUnresolvedReferences
-        #     cv2.imwrite('C:\mkoloman\Magisterka\Carla_organization\Carla\images\image{}.png'.format(self.step_counter), image)
 
         self.front_camera = torch.Tensor(image).view(3, self.resX, self.resY).unsqueeze(0).float()
 
@@ -411,18 +395,11 @@ class CarlaEnv:
                 in_meters = 1000 * normalized
                 gray_depth_img.append(in_meters)
 
-        print(gray_depth_img)
-
         if self.show_cam:
             # noinspection PyUnresolvedReferences
             cv2.imshow("", gray_depth_img)
             # noinspection PyUnresolvedReferences
             cv2.waitKey(1)
-
-        if self.step_counter % 10 == 0:
-            # noinspection PyUnresolvedReferences
-            cv2.imwrite('C:\mkoloman\Magisterka\Carla_organization\Carla\images\image{}.png'.format(self.step_counter),
-                        gray_depth_img)
 
     def add_collision_sensor(self):
         """
@@ -440,7 +417,6 @@ class CarlaEnv:
         :param event: data from the collision sensor
         """
         coll_type = event.other_actor.type_id
-        # self.log.err(f"Collision with: {coll_type}")
         self.collision_history_list.append(event)
 
     def add_line_invasion_sensor(self):
@@ -464,7 +440,6 @@ class CarlaEnv:
         History of events when the actor crossed a lane marking
         :param invasion: - event
         """
-        # self.log.warn("Lines were crossed")
         self.invasion_history_list.append(invasion)
 
     def _draw_optimal_route_lines(self, route):
@@ -714,7 +689,6 @@ class CarlaEnv:
         self.vehicle.apply_control(self.control)
 
     def car_control_discrete(self, action):
-        # if self.action_space[action] != ac.no_action:
         self.control.throttle = ac.ACTION_CONTROL[self.action_space[action]][0]
         self.control.brake = ac.ACTION_CONTROL[self.action_space[action]][1]
         self.control.steer = ac.ACTION_CONTROL[self.action_space[action]][2]
@@ -746,11 +720,6 @@ class CarlaEnv:
         # If we are close to middle point and the reward was not already obtained
         if mp_min < 2.5 and self.stat_reward_mp[mp_index][1] == 0:
             self.stat_reward_mp[mp_index][1] = 1
-            # self.log.success(f"Reward from arriving to the middle point obtained: {static_reward_from_mp}")
-
-            # if mp_index >= 6:
-            #     done = True
-            #     return static_reward_from_mp, done
 
             # If we arrive to the terminal point
             if mp_index == len(self.stat_reward_mp) - 1:
@@ -872,10 +841,7 @@ class CarlaEnv:
         if self.step_counter >= how_many_steps:
             self.done = True
 
-        extra_info = None
-
-        return self.front_camera, reward, self.done, extra_info, torch.Tensor(
-            [[route_distance]]), torch.Tensor([[speed]]), torch.Tensor([[self.step_counter]])
+        return self.front_camera, reward, self.done
 
     def destroy_agents(self):
         """

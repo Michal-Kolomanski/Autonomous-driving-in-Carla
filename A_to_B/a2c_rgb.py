@@ -7,12 +7,8 @@ The A2C's high-level flow:
 5) Repeat from step 2.
 """
 
-import pickle
-import time
-
 import numpy as np
 import os
-import cv2
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
@@ -28,8 +24,6 @@ from carla_env import CarlaEnv
 from nets.a2c import Actor as DeepActor  # Continuous
 from nets.a2c import DiscreteActor as DeepDiscreteActor  # Separate actor
 from nets.a2c import Critic as DeepCritic  # Separate critic
-
-# TODO Semantic
 
 from ACTIONS import ACTIONS as ac
 from utils import ColoredPrint
@@ -145,7 +139,6 @@ class DeepActorCriticAgent(mp.Process):
             # Limit the action to lie between the (low, high) limits of the env
             [action[:, i].clamp_(-1, 1) for i in range(self.action_shape)]
         action = action.to(torch.device("cuda"))
-        # return action.numpy().squeeze(0)  # Convert to numpy ndarray, squeeze and remove the batch dimension
         return action.cpu().numpy().squeeze(0)  # Convert to numpy ndarray, squeeze and remove the batch dimension
 
     def get_action(self, obs):
@@ -153,7 +146,7 @@ class DeepActorCriticAgent(mp.Process):
         action = action_distribution.sample()
 
         log_prob_a = action_distribution.log_prob(action)
-        # print(log_prob_a)
+
         action = self.process_action(action)
         # Store the n-step trajectory while training. Skip storing the trajectories in test mode
         self.trajectory.append(Transition(obs, self.value, action, log_prob_a))  # Construct the trajectory
@@ -223,11 +216,11 @@ class DeepActorCriticAgent(mp.Process):
         writer.add_scalar("actor_loss", actor_loss, self.global_step_num)
         writer.add_scalar("critic_loss", critic_loss, self.global_step_num)
         writer.add_scalar("Advantage", advantage, self.global_step_num)
-        writer.add_scalar("log_prob_actions_batch_mean", sum(log_prob_a_batch)/len(log_prob_a_batch), self.global_step_num)
-        writer.add_scalar("v_s_batch", sum(v_s_batch)/len(v_s_batch), self.global_step_num)
-        writer.add_scalar("td_targets", sum(td_targets)/len(td_targets), self.global_step_num)
-        writer.add_scalar("Entropy", self.action_distribution.entropy(), self.global_step_num)
-        writer.add_scalar("Entropy_mean", self.action_distribution.entropy().mean(), self.global_step_num)
+        # writer.add_scalar("log_prob_actions_batch_mean", sum(log_prob_a_batch)/len(log_prob_a_batch), self.global_step_num)
+        # writer.add_scalar("v_s_batch", sum(v_s_batch)/len(v_s_batch), self.global_step_num)
+        # writer.add_scalar("td_targets", sum(td_targets)/len(td_targets), self.global_step_num)
+        # writer.add_scalar("Entropy", self.action_distribution.entropy(), self.global_step_num)
+        # writer.add_scalar("Entropy_mean", self.action_distribution.entropy().mean(), self.global_step_num)
 
         return actor_loss, critic_loss
 
@@ -274,12 +267,8 @@ class DeepActorCriticAgent(mp.Process):
                 if self.action_type == 'discrete':
                     actions_counter[ac.ACTIONS_NAMES[self.environment.action_space[action]]] += 1
 
-                new_state, reward, done, _, _, _, _ = self.environment.step(action)
+                new_state, reward, done = self.environment.step(action)
                 new_state = new_state / 255  # resize the tensor to [0, 1]
-
-                # image = new_state[0].detach().numpy().reshape(80, 80, 3)
-                # # noinspection PyUnresolvedReferences
-                # cv2.imwrite(path.format(self.global_step_num), image)
 
                 self.rewards.append(reward)
                 ep_reward += reward
@@ -297,7 +286,7 @@ class DeepActorCriticAgent(mp.Process):
                 print(str(actions_counter))
 
             episode_rewards.append(ep_reward)
-            # The best reward
+
             if ep_reward > self.best_reward:
                 self.best_reward = ep_reward
             if np.mean(episode_rewards) > prev_checkpoint_mean_ep_rew:

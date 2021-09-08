@@ -137,3 +137,4 @@ dmypy.json
 .idea/other.xml
 *.0
 *.pth
+.idea/.name
